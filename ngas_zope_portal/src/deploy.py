@@ -33,11 +33,11 @@ from fabric.utils import puts, abort, fastprint
 USERNAME = 'ec2-user'
 POSTFIX = False
 AMI_ID = 'ami-aecd60c7'
-INSTANCE_NAME = 'NGAS'
+INSTANCE_NAME = 'NGAS_Portal'
 INSTANCE_TYPE = 't1.micro'
 INSTANCES_FILE = os.path.expanduser('~/.aws/aws_instances')
-AWS_KEY = os.path.expanduser('~/.ssh/icrarkey2.pem')
-KEY_NAME = 'icrarkey2'
+AWS_KEY = os.path.expanduser('~/.ssh/icrar_ngas.pem')
+KEY_NAME = 'icrar_ngas'
 ELASTIC_IP = False
 SECURITY_GROUPS = ['NGAS'] # Security group allows SSH
 NGAS_PYTHON_VERSION = '2.7'
