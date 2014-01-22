@@ -671,7 +671,14 @@ def operations_deploy():
         content_install()
     #init_deploy()
 
-
+@task
+def install():
+    """
+    Just execute the installation methods, not the system setup
+    """
+    virtualenv_setup()
+    zope_install()
+    content_install()
 
 @task
 @serial
