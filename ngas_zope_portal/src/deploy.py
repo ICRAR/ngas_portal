@@ -545,7 +545,7 @@ def zope_install():
         virtualenv('easy_install Products.ZSQLMethods')
         virtualenv('easy_install Products.SQLAlchemyDA')
         virtualenv('easy_install psycopg2')
-        virtualenv('mkzopeinstance -d {0}/ngas -u {1}:{2}'.format(env.PORTAL_DIR_ABS, 'admin','marv4zope'))
+        virtualenv('mkzopeinstance -d {0}/ngas -u {1}:{2}'.format(env.PORTAL_DIR_ABS, 'admin','admin4zope'))
     with cd(env.PORTAL_DIR_ABS+'/lib/python2.7/site-packages/Products.SQLAlchemyDA-0.5.1-py2.7.egg/Products/SQLAlchemyDA'):
         put('data/da.py.patch', '{0}/lib/python2.7/site-packages/Products.SQLAlchemyDA-0.5.1-py2.7.egg/Products/SQLAlchemyDA'.\
             format(env.PORTAL_DIR_ABS))
