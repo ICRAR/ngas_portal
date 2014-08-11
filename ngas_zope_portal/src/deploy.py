@@ -561,8 +561,9 @@ def content_install():
     #git_clone_tar()
     #run('cp /tmp/ngas_portal/data/NGAST.zexp {0}/ngas/import/')
     put('data/NGAST.zexp', '{0}/ngas/import/'.format(env.PORTAL_DIR_ABS))
-    run('mkdir NGAS', warn_only=True)
-    if not exists('{0}/..NGAS/ngas.sqlite'.format(env.PORTAL_DIR_ABS)):
+    if not exists('{0}/../NGAS'.format(env.PORTAL_DIR_ABS)):
+        run('mkdir NGAS', warn_only=True)
+    if not exists('{0}/../NGAS/ngas.sqlite'.format(env.PORTAL_DIR_ABS)):
         put('data/ngas.sqlite', '{0}/../NGAS/'.format(env.PORTAL_DIR_ABS))
 
 
