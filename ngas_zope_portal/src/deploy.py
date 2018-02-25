@@ -39,14 +39,19 @@ INSTANCES_FILE = os.path.expanduser('~/.aws/aws_instances')
 AWS_KEY = os.path.expanduser('~/.ssh/icrar_ngas.pem')
 KEY_NAME = 'icrar_ngas'
 ELASTIC_IP = False
-SECURITY_GROUPS = ['NGAS'] # Security group allows SSH
+SECURITY_GROUPS = ['NGAS']  # Security group allows SSH
 NGAS_PYTHON_VERSION = '2.7'
 NGAS_PYTHON_URL = 'http://www.python.org/ftp/python/2.7.3/Python-2.7.3.tar.bz2'
-PORTAL_DIR = 'ngas_portal' #NGAS runtime directory
+PORTAL_DIR = 'ngas_portal'  # NGAS runtime directory
 NGAS_DEF_DB = '/home/ngas/NGAS/ngas.sqlite'
 GITUSER = 'icrargit'
 GITREPO = 'gitsrv.icrar.org:ngas_portal'
-ZOPE_URL = 'http://download.zope.org/Zope2/index/2.13.19 Zope2'
+# ZOPE_URL = 'http://download.zope.org/Zope2/index/2.13.27 Zope2'
+# ZOPE_URL = 'https://raw.githubusercontent.com/zopefoundation/Zope/4.0a6/requirements-full.txt'
+ZOPE_URL = 'https://zopefoundation.github.io/Zope/releases/2.13.27/requirements.txt'
+# VIRTUALENV_URL = 'https://pypi.python.org/packages/d4/0c/9840c08189e030873387a73b90ada981885010dd9aea134d6de30cd24cb8/virtualenv-15.1.0.tar.gz'
+# VIRTUALENV_TAR = VIRTUALENV_URL.split('/')[-1]
+# VIRTUALENV_DIR = '.'.join(VIRTUALENV_TAR.split('.')[:-2])
 
 YUM_PACKAGES = [
    'autoconf',
@@ -67,6 +72,14 @@ APT_PACKAGES = [
         'libsqlite3-dev',
         ]
 
+
+PIP_PACKAGES = [
+    'six',
+    'packaging',
+    'zc.buildout',
+    'fabric',
+    'boto',
+]
 
 PUBLIC_KEYS = os.path.expanduser('~/.ssh')
 # WEB_HOST = 0
@@ -516,21 +529,28 @@ def virtualenv_setup():
     setup virtualenv with the detected or newly installed python
     """
     set_env()
-    check_python()
+    ppath = check_python()
     print "CHECK_DIR: {0}".format(check_dir(env.PORTAL_DIR_ABS))
     if check_dir(env.PORTAL_DIR_ABS):
         abort('{0} directory exists already'.format(env.PORTAL_DIR_ABS))
+    if not check_command('pip'):
+        if not check_command('easy_install'):
+            abort("Not even easy_install available! Bailing out now!")
+        else:
+            sudo('easy_install pip')
+    else:
+        run('pip install virtualenv')
+#    with cd('/tmp'):
+#        run('wget --no-check-certificate -q https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.10.tar.gz')
+#        run('tar -xvzf virtualenv-1.10.tar.gz')
+#        run('cd virtualenv-1.10; {0} virtualenv.py {1}'.format(env.PYTHON, env.PORTAL_DIR_ABS))
+#        run('wget --no-check-certificate -q {0}'.format(VIRTUALENV_URL))
+#        run('tar -xvzf {0}'.format(VIRTUALENV_TAR))
+#        run('cd {0}; {1} virtualenv.py {2}'.format(VIRTUALENV_DIR, env.PYTHON, env.PORTAL_DIR_ABS))
+    run('virtualenv -p {0} {1}'.format(env.PYTHON, env.PORTAL_DIR_ABS))
 
-    with cd('/tmp'):
-        run('wget --no-check-certificate -q https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.10.tar.gz')
-        run('tar -xvzf virtualenv-1.10.tar.gz')
-        run('cd virtualenv-1.10; {0} virtualenv.py {1}'.format(env.PYTHON, env.PORTAL_DIR_ABS))
-    with cd(env.PORTAL_DIR_ABS):
-        virtualenv('pip install zc.buildout')
-        # make this installation self consistent
-        virtualenv('pip install fabric')
-        virtualenv('pip install boto')
-
+    for pkg in PIP_PACKAGES:
+        virtualenv('pip install {0}'.format(pkg))
 
 
 @task
@@ -541,15 +561,21 @@ def zope_install():
     set_env()
 
     with cd(env.PORTAL_DIR_ABS):
-        virtualenv('easy_install -i {0} Zope2'.format(ZOPE_URL))
-        virtualenv('easy_install Products.ZSQLMethods')
-        virtualenv('easy_install Products.SQLAlchemyDA')
-        virtualenv('easy_install psycopg2')
+        virtualenv('pip install --no-binary zc.recipe.egg -r {0}'.format(ZOPE_URL))
+        # virtualenv('pip install -U zope.interface')
+        virtualenv('pip install Products.ExternalMethod')
+        virtualenv('pip install Products.PythonScripts')
+        virtualenv('pip install Products.ZSQLMethods==2.13.5')
+#        virtualenv('easy_install Products.SQLAlchemyDA')
+        virtualenv('pip install psycopg2-binary')
         virtualenv('mkzopeinstance -d {0}/ngas -u {1}:{2}'.format(env.PORTAL_DIR_ABS, 'admin','admin4zope'))
-    with cd(env.PORTAL_DIR_ABS+'/lib/python2.7/site-packages/Products.SQLAlchemyDA-0.5.1-py2.7.egg/Products/SQLAlchemyDA'):
-        put('data/da.py.patch', '{0}/lib/python2.7/site-packages/Products.SQLAlchemyDA-0.5.1-py2.7.egg/Products/SQLAlchemyDA'.\
-            format(env.PORTAL_DIR_ABS))
-        run('patch da.py da.py.patch')
+        with cd('/tmp'):
+            virtualenv('git clone https://github.com/zopefoundation/Products.SQLAlchemyDA.git SQLAlchemyDA')
+            virtualenv('cd SQLAlchemyDA; python setup.py install')
+#    with cd(env.PORTAL_DIR_ABS+'/lib/python2.7/site-packages/Products.SQLAlchemyDA-0.6.2b2-py2.7.egg/Products/SQLAlchemyDA'):
+#        put('data/da.py.patch', '{0}/lib/python2.7/site-packages/Products.SQLAlchemyDA-0.6.2b2-py2.7.egg/Products/SQLAlchemyDA'.\
+#            format(env.PORTAL_DIR_ABS))
+#        run('patch da.py da.py.patch')
 
 
 @task
@@ -560,6 +586,9 @@ def content_install():
     set_env()
     #git_clone_tar()
     #run('cp /tmp/ngas_portal/data/NGAST.zexp {0}/ngas/import/')
+    if not exists('{0}/ngas/import/'.format(env.PORTAL_DIR_ABS)):
+        run('mkdir {0}/ngas/import/'.format(env.PORTAL_DIR_ABS),
+            warn_only=True)
     put('data/*.zexp', '{0}/ngas/import/'.format(env.PORTAL_DIR_ABS))
     if not exists('{0}/../NGAS'.format(env.PORTAL_DIR_ABS)):
         run('mkdir NGAS', warn_only=True)

@@ -1,7 +1,7 @@
-248c248,251
-<         return self._wrapper._engine.pool.size() 
+410c410,413
+<         return self.sa_zope_wrapper()._engine.pool.size()
 ---
 >         try:
->            return self._wrapper._engine.pool.size()
->         except:
->            return 1
+>             return self.sa_zope_wrapper()._engine.pool.size()
+>         except Exception:
+>             return 1
