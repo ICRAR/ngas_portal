@@ -202,7 +202,7 @@ def build_APP():
         if build_cmd != '':
             virtualenv(build_cmd)
 
-    with cd(env.APP_DIR_ABS):
+    with cd(env.APP_INSTALL_DIR_NAME):
         virtualenv('pip install --no-binary zc.recipe.egg -r {0}'.format(ZOPE_URL))
         # virtualenv('pip install -U zope.interface')
         virtualenv('pip install Products.ExternalMethod')
@@ -210,7 +210,7 @@ def build_APP():
         virtualenv('pip install Products.ZSQLMethods==2.13.5')
 #        virtualenv('easy_install Products.SQLAlchemyDA')
         virtualenv('pip install psycopg2-binary')
-        virtualenv('mkzopeinstance -d {0}/ngas -u {1}:{2}'.format(env.APP_DIR_ABS, 'admin','admin4zope'))
+        virtualenv('mkzopeinstance -d {0}/ngas -u {1}:{2}'.format(env.APP_INSTALL_DIR_NAME, 'admin','admin4zope'))
         with cd('/tmp'):
             virtualenv('git clone https://github.com/zopefoundation/Products.SQLAlchemyDA.git SQLAlchemyDA')
             virtualenv('cd SQLAlchemyDA; python setup.py install')
@@ -256,7 +256,7 @@ def extra_sudo():
 def install_docker_compose():
     pass
 
-env.build_cmd = APP_build_cmd
+env.build_cmd = build_APP
 env.APP_init_install_function = install_sysv_init_script
 env.APP_start_check_function = start_APP_and_check_status
 env.sysinitAPP_start_check_function = sysinitstart_APP_and_check_status
