@@ -54,16 +54,16 @@ ZOPE_URL = 'https://zopefoundation.github.io/Zope/releases/2.13.27/requirements.
 # VIRTUALENV_DIR = '.'.join(VIRTUALENV_TAR.split('.')[:-2])
 
 YUM_PACKAGES = [
-   'autoconf',
-   'python27-devel',
-   'git',
-   'readline-devel',
-   'sqlite-devel',
-   'make',
-   'wget.x86_64',
-   'gcc',
-   'patch',
-   'postgresql9-devel.x86_64',
+    'autoconf',
+    'python27-devel',
+    'git',
+    'readline-devel',
+    'sqlite-devel',
+    'make',
+    'wget.x86_64',
+    'gcc',
+    'patch',
+    'postgresql9-devel.x86_64',
 ]
 
 APT_PACKAGES = [
@@ -74,11 +74,6 @@ APT_PACKAGES = [
 
 
 PIP_PACKAGES = [
-    'six',
-    'packaging',
-    'zc.buildout',
-    'fabric',
-    'boto',
 ]
 
 PUBLIC_KEYS = os.path.expanduser('~/.ssh')
