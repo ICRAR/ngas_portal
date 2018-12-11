@@ -29,7 +29,7 @@ fabfile is used. Please make sure not to use it without those modifications.
 import os, sys
 from fabric.state import env
 from fabric.colors import red
-from fabric.operations import local
+from fabric.operations import local, put
 from fabric.decorators import task, parallel
 from fabric.context_managers import settings, cd
 from fabric.contrib.files import exists, sed
@@ -134,7 +134,8 @@ env.pkgs = {
 # Don't re-export the tasks imported from other modules, only the ones defined
 # here
 __all__ = [
-    'cleanup'
+    'cleanup',
+    'content_install'
 ]
 
 # Set the rpository root to be relative to the location of this file.
@@ -144,7 +145,7 @@ env.APP_repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'
 from fabfileTemplate.utils import sudo, info, success, default_if_empty, home, run
 from fabfileTemplate.utils import overwrite_defaults, failure
 from fabfileTemplate.system import check_command, get_linux_flavor, MACPORT_DIR
-from fabfileTemplate.APPcommon import virtualenv, APP_doc_dependencies, APP_source_dir
+from fabfileTemplate.APPcommon import virtualenv, APP_doc_dependencies, APP_source_dir, APP_install_dir
 from fabfileTemplate.APPcommon import APP_root_dir, extra_python_packages, APP_user, build
 from fabfileTemplate.pkgmgr import check_brew_port, check_brew_cellar
 
@@ -202,7 +203,7 @@ def build_APP():
         if build_cmd != '':
             virtualenv(build_cmd)
 
-    with cd(env.APP_INSTALL_DIR_NAME):
+    with cd(APP_install_dir()):
         virtualenv('pip install --no-binary zc.recipe.egg -r {0}'.format(ZOPE_URL))
         # virtualenv('pip install -U zope.interface')
         virtualenv('pip install Products.ExternalMethod')
@@ -210,12 +211,26 @@ def build_APP():
         virtualenv('pip install Products.ZSQLMethods==2.13.5')
 #        virtualenv('easy_install Products.SQLAlchemyDA')
         virtualenv('pip install psycopg2-binary')
-        virtualenv('mkzopeinstance -d {0}/ngas -u {1}:{2}'.format(env.APP_INSTALL_DIR_NAME, 'admin','admin4zope'))
+        virtualenv('mkzopeinstance -d {0}/ngas -u {1}:{2}'.format(APP_install_dir(), 'admin','admin4zope'))
         with cd('/tmp'):
             virtualenv('git clone https://github.com/zopefoundation/Products.SQLAlchemyDA.git SQLAlchemyDA')
             virtualenv('cd SQLAlchemyDA; python setup.py install')
 
     success("{0} built and installed".format(env.APP_NAME))
+
+@task
+def content_install():
+    """
+    Install the content of the NGAS portal
+    """
+    if not exists('{0}/ngas/import/'.format(APP_install_dir())):
+        run('mkdir {0}/ngas/import/'.format(APP_install_dir()),
+            warn_only=True)
+    put('data/*.zexp', '{0}/ngas/import/'.format(APP_install_dir()))
+    if not exists('{0}/../NGAS'.format(APP_install_dir())):
+        run('mkdir NGAS', warn_only=True)
+    if not exists('{0}/../NGAS/ngas.sqlite'.format(APP_install_dir())):
+        put('data/ngas.sqlite', '{0}/../NGAS/'.format(APP_install_dir()))
 
 
 def prepare_APP_data_dir():
@@ -224,6 +239,7 @@ def prepare_APP_data_dir():
     ###>>> 
     # Provide the actual implementation here if required.
     ###<<<
+    pass
 
 def install_sysv_init_script(nsd, nuser, cfgfile):
     """
