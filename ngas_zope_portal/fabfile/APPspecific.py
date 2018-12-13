@@ -43,14 +43,7 @@ from fabric.contrib.console import confirm
 
 # The following variable will define the Application name as well as directory
 # structure and a number of other application specific names.
-APP_NAME_DEFAULT = 'NGAS_PORTAL'
-
-if 'APP_NAME' not in env or not env[key]:
-    if hasattr(default, '__call__'):
-        env['APP_NAME'] = default()
-    else:
-        env[key] = APP_NAME_DEFAULT
-
+APP_NAME = 'NGAS_PORTAL'
 
 # The username to use by default on remote hosts where APP is being installed
 # This user might be different from the initial username used to connect to the
@@ -219,6 +212,7 @@ def build_APP():
         with cd('/tmp'):
             virtualenv('git clone https://github.com/zopefoundation/Products.SQLAlchemyDA.git SQLAlchemyDA')
             virtualenv('cd SQLAlchemyDA; python setup.py install')
+
 
 @task
 def content_install():
