@@ -43,7 +43,7 @@ from fabric.contrib.console import confirm
 
 # The following variable will define the Application name as well as directory
 # structure and a number of other application specific names.
-APP_NAME = 'NGAS_PORTAL'
+env.APP_NAME = 'NGAS_PORTAL'
 
 # The username to use by default on remote hosts where APP is being installed
 # This user might be different from the initial username used to connect to the
@@ -135,7 +135,6 @@ env.pkgs = {
 # here
 __all__ = [
     'cleanup',
-    'content_install'
 ]
 
 # Set the rpository root to be relative to the location of this file.
@@ -214,8 +213,8 @@ def build_APP():
             virtualenv('cd SQLAlchemyDA; python setup.py install')
 
 
-@task
-def content_install():
+def prepare_APP_data_dir():
+    """Creates a new APP root directory"""
     """
     Install the content of the NGAS portal
     """
@@ -227,15 +226,6 @@ def content_install():
         run('mkdir NGAS', warn_only=True)
     if not exists('{0}/../NGAS/ngas.sqlite'.format(APP_install_dir())):
         put('data/ngas.sqlite', '{0}/../NGAS/'.format(APP_install_dir()))
-
-
-def prepare_APP_data_dir():
-    """Creates a new APP root directory"""
-
-    ###>>> 
-    # Provide the actual implementation here if required.
-    ###<<<
-    pass
 
 def install_sysv_init_script(nsd, nuser, cfgfile):
     """
